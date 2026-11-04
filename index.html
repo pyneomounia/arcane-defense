@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#10131f">
-  <title>Arcane Survival — Treino 01</title>
+  <title>Arcane Survival</title>
   <link rel="stylesheet" href="src/style.css">
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
 </head>
@@ -15,23 +15,55 @@
         <span class="orb" aria-hidden="true"></span>
         <div>
           <strong>ARCANE SURVIVAL</strong>
-          <small>PROTÓTIPO · ETAPA 01</small>
+          <small>PROTÓTIPO · MAGIA ELEMENTAL</small>
         </div>
       </div>
       <div class="status">
-        <span>OBJETIVO <b>EXPLORAR</b></span>
+        <span>ELEMENTO <b id="selected-element">ESCOLHA</b></span>
         <span>CONTROLE <b>WASD / SETAS</b></span>
       </div>
     </header>
 
-    <section id="game-container" aria-label="Arena de treinamento"></section>
+    <section id="game-container" aria-label="Arena de treinamento">
+      <div id="element-select" class="element-select">
+        <div class="element-panel">
+          <p class="eyebrow">ARCANE SURVIVAL</p>
+          <h1>Escolha sua afinidade</h1>
+          <p class="element-intro">O primeiro elemento definirá a magia que seu mago dominará nesta jornada.</p>
+
+          <div class="element-grid">
+            <button class="element-option element-ice" data-element="ice" type="button">
+              <span class="element-symbol">❄</span>
+              <span class="element-name">Gelo</span>
+              <span class="element-desc">Cristais e frio arcano</span>
+            </button>
+            <button class="element-option element-fire" data-element="fire" type="button">
+              <span class="element-symbol">✹</span>
+              <span class="element-name">Fogo</span>
+              <span class="element-desc">Chamas e combustão</span>
+            </button>
+            <button class="element-option element-water" data-element="water" type="button">
+              <span class="element-symbol">◉</span>
+              <span class="element-name">Água</span>
+              <span class="element-desc">Orbes e correntes</span>
+            </button>
+            <button class="element-option element-earth" data-element="earth" type="button">
+              <span class="element-symbol">⬟</span>
+              <span class="element-name">Terra</span>
+              <span class="element-desc">Rochas e fragmentos</span>
+            </button>
+          </div>
+          <p class="element-footnote">A magia será lançada automaticamente a cada 0,5 segundo.</p>
+        </div>
+      </div>
+    </section>
 
     <footer class="help">
       <span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> ou <kbd>↑</kbd><kbd>←</kbd><kbd>↓</kbd><kbd>→</kbd> para movimentar</span>
-      <span>O mago é controlado pelo teclado. A câmera acompanha o personagem.</span>
+      <span>O mago lança a magia na direção para a qual está olhando.</span>
     </footer>
 
-    <p id="message" role="status">Treino 01: caminhe pela arena e explore o cenário.</p>
+    <p id="message" role="status">Carregando o mundo e as animações...</p>
   </main>
 
   <script src="src/main.js"></script>
