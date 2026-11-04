@@ -277,16 +277,32 @@
         earth: 'TERRA'
       };
 
-      message.textContent = 'Afinidade escolhida: ' + labels[this.selectedElement] + '. O mago lançará a magia a cada 1 segundo.';
+      message.textContent = 'Afinidade escolhida: ' + labels[this.selectedElement] + '. O mago lançará a magia a cada 1,8 segundo.';
 
-      // Primeiro disparo imediato; os próximos acontecem a cada 1 segundo.
+      // Primeiro disparo imediato; os próximos acontecem a cada 1,8 segundo.
       this.castElementSpell();
       this.spellTimer = this.time.addEvent({
-        delay: 1000,
+        delay: 1800,
         loop: true,
         callback: this.castElementSpell,
         callbackScope: this
       });
+    }
+
+    getSpellOrigin(facing) {
+      // Ponto aproximado da mão em cada orientação do sprite.
+      const handOffsets = {
+        front: { x: 17, y: -51 },
+        back: { x: 17, y: -61 },
+        left: { x: -25, y: -58 },
+        right: { x: 25, y: -58 }
+      };
+
+      const offset = handOffsets[facing] || handOffsets.front;
+      return {
+        x: this.wizard.x + offset.x,
+        y: this.wizard.y + offset.y
+      };
     }
 
     getFacingVector() {
@@ -303,44 +319,124 @@
     castElementSpell() {
       if (!this.wizard || !this.selectedElement) return;
 
+      const element = this.selectedElement;
+      const facing = this.wizardFacing;
       const direction = this.getFacingVector();
-      const startX = this.wizard.x + direction.x * 30;
-      const startY = this.wizard.y - 18 + direction.y * 30;
-      const projectile = this.createElementProjectile(
-        this.selectedElement,
-        startX,
-        startY,
-        direction
-      );
+      const origin = this.getSpellOrigin(facing);
 
-      // Os projéteis são demonstrações visuais até existir um sistema de inimigos.
-      const travelDistance = 360;
-      this.tweens.add({
-        targets: projectile,
-        x: startX + direction.x * travelDistance,
-        y: startY + direction.y * travelDistance,
-        duration: 1200,
-        ease: 'Linear',
-        onComplete: () => {
-          const impactX = projectile.x;
-          const impactY = projectile.y;
-          projectile.destroy();
-          this.createElementImpact(this.selectedElement, impactX, impactY);
-        }
+      // Pequena preparação visual na mão antes de liberar o projétil.
+      this.createCastingAnimation(element, origin.x, origin.y, direction);
+
+      // O projétil sai da mão depois da breve animação de conjuração.
+      this.time.delayedCall(150, () => {
+        if (!this.wizard) return;
+
+        const projectile = this.createElementProjectile(
+          element,
+          origin.x,
+          origin.y,
+          direction
+        );
+
+        // Os projéteis são demonstrações visuais até existir um sistema de inimigos.
+        const travelDistance = 360;
+        this.tweens.add({
+          targets: projectile,
+          x: origin.x + direction.x * travelDistance,
+          y: origin.y + direction.y * travelDistance,
+          duration: 1200,
+          ease: 'Linear',
+          onComplete: () => {
+            const impactX = projectile.x;
+            const impactY = projectile.y;
+            projectile.destroy();
+            this.createElementImpact(element, impactX, impactY);
+          }
+        });
       });
     }
 
+    createCastingAnimation(element, x, y, direction) {
+      const colors = {
+        fire: 0xff8a3d,
+        ice: 0x8deeff,
+        water: 0x4bcfff,
+        earth: 0xb58a58
+      };
+      const color = colors[element] || 0xc5a7ff;
+
+      // O mago dá um pequeno impulso corporal ao canalizar a magia.
+      this.tweens.add({
+        targets: this.wizard,
+        scaleX: 1.68,
+        scaleY: 1.53,
+        duration: 95,
+        yoyo: true,
+        ease: 'Sine.easeOut'
+      });
+
+      // Núcleo luminoso que cresce na mão e desaparece no lançamento.
+      const charge = this.add.circle(x, y, 4, color, 0.72).setDepth(14);
+      this.tweens.add({
+        targets: charge,
+        scale: 1.9,
+        alpha: 0,
+        duration: 240,
+        ease: 'Quad.easeOut',
+        onComplete: () => charge.destroy()
+      });
+
+      // Anel de energia se expandindo ao redor da mão.
+      const ring = this.add.circle(x, y, 7, color, 0)
+        .setStrokeStyle(1.5, color, 0.9)
+        .setDepth(13);
+      this.tweens.add({
+        targets: ring,
+        scale: 2.15,
+        alpha: 0,
+        duration: 270,
+        ease: 'Quad.easeOut',
+        onComplete: () => ring.destroy()
+      });
+
+      // Pequenas partículas acompanham o impulso na direção do disparo.
+      const perpendicularX = -direction.y;
+      const perpendicularY = direction.x;
+
+      for (let i = 0; i < 5; i++) {
+        const spread = (i - 2) * 3;
+        const particle = this.add.circle(
+          x + perpendicularX * spread,
+          y + perpendicularY * spread,
+          1.5,
+          color,
+          0.95
+        ).setDepth(14);
+
+        this.tweens.add({
+          targets: particle,
+          x: particle.x + direction.x * 11 + perpendicularX * spread * 0.45,
+          y: particle.y + direction.y * 11 + perpendicularY * spread * 0.45,
+          alpha: 0,
+          scale: 0.2,
+          duration: 180 + i * 18,
+          ease: 'Quad.easeOut',
+          onComplete: () => particle.destroy()
+        });
+      }
+    }
+
     createElementProjectile(element, x, y, direction) {
-      // As imagens já incluem brilho, núcleo e rastro, como na arte da seleção.
-      // Todas apontam para a direita; a rotação acompanha a direção do mago.
+      // O núcleo do projétil agora fica próximo ao tamanho da mão do mago.
+      // Mantemos um rastro curto para que a magia continue legível em movimento.
       const sizes = {
-        fire: [150, 68],
-        ice: [150, 83],
-        water: [150, 98],
-        earth: [150, 86]
+        fire: [42, 19],
+        ice: [38, 21],
+        water: [34, 22],
+        earth: [36, 21]
       };
 
-      const [width, height] = sizes[element] || [150, 80];
+      const [width, height] = sizes[element] || [38, 21];
       const angle = Math.atan2(direction.y, direction.x);
 
       return this.add.image(x, y, 'projectile-' + element)
