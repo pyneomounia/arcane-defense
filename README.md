@@ -2,9 +2,9 @@
 
 Protótipo de um jogo de sobrevivência com tema de mago e progressão elemental.
 
-## Etapa atual: escolha elemental e magias iniciais
+## Etapa atual: seleção elemental e magias iniciais
 
-Ao iniciar, o jogador escolhe uma das quatro afinidades:
+A tela inicial apresenta quatro afinidades em cartões com arte pixelada:
 - **Gelo:** projétil cristalino azul-claro.
 - **Fogo:** esfera incandescente com cauda de chama.
 - **Água:** orbe aquático com bolhas.
@@ -12,9 +12,9 @@ Ao iniciar, o jogador escolhe uma das quatro afinidades:
 
 Depois da escolha, o mago lança automaticamente a magia selecionada:
 - Primeiro disparo imediato.
-- Próximos disparos a cada 500 ms (0,5 segundo).
+- Próximos disparos a cada 1 segundo.
+- Cada projétil percorre a arena a uma velocidade menor (360 pixels em 1,2 segundo).
 - A magia segue a última direção cardinal para a qual o mago está olhando.
-- Cada elemento tem forma, cores e efeito de impacto próprios.
 
 Como ainda não existe sistema de inimigos, os projéteis são demonstrações visuais e atravessam a arena. O objetivo desta etapa é validar a seleção elemental, a cadência e a aparência das magias.
 
@@ -27,12 +27,10 @@ O chão é uma textura procedural repetida, sem bordas fixas.
 ## Estrutura
 
 - `index.html`: página, HUD e seleção de elemento.
-- `src/style.css`: estilos da interface.
+- `src/style.css`: estilos da interface pixel art.
 - `src/main.js`: cena, chão procedural, personagem, animações, seleção elemental e projéteis.
-- `assets/characters/wizard/wizard-walk-front.webp`: caminhada de frente.
-- `assets/characters/wizard/wizard-walk-back.webp`: caminhada de costas.
-- `assets/characters/wizard/wizard-walk-left.webp`: caminhada para a esquerda.
-- `assets/characters/wizard/wizard-walk-right.webp`: caminhada para a direita.
+- `assets/elemental/`: ilustrações pixel art das quatro afinidades.
+- `assets/characters/wizard/`: sprites do mago.
 
 ## Próximas etapas
 
