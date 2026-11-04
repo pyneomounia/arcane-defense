@@ -19,7 +19,13 @@
       super('TrainingScene');
     }
 
+    preload() {
+      // Carrega os dados compactados do personagem.
+      this.load.json('wizardSpriteData', 'assets/characters/wizard/wizard-sprite.json');
+    }
+
     create() {
+      this.createWizardTextures();
       this.drawWorld();
       this.createWizard();
       this.createControls();
@@ -29,6 +35,67 @@
       this.cameras.main.startFollow(this.wizard, true, 0.08, 0.08);
 
       message.textContent = 'Treino 01: caminhe pela arena e explore o cenário.';
+    }
+
+    createWizardTextures() {
+      const spriteData = this.cache.json.get('wizardSpriteData');
+
+      if (!spriteData || spriteData.format !== 'arcane-pixel-indexed-4bit-v1') {
+        throw new Error('Os dados do personagem não foram carregados corretamente.');
+      }
+
+      // O desenho foi salvo como índices de uma paleta de cores.
+      // Dois pixels ocupam um byte, reduzindo bastante o tamanho do arquivo.
+      const binary = window.atob(spriteData.pixels);
+      const packedPixels = new Uint8Array(binary.length);
+
+      for (let i = 0; i < binary.length; i++) {
+        packedPixels[i] = binary.charCodeAt(i);
+      }
+
+      const frameWidth = spriteData.frameWidth;
+      const frameHeight = spriteData.frameHeight;
+      const pixelsPerFrame = frameWidth * frameHeight;
+      const expectedBytes = (pixelsPerFrame * spriteData.frameCount) / 2;
+
+      if (packedPixels.length !== expectedBytes) {
+        throw new Error('O arquivo do personagem está incompleto.');
+      }
+
+      // Cada direção vira uma textura própria do Phaser.
+      spriteData.frameOrder.forEach((direction, frameIndex) => {
+        const canvas = document.createElement('canvas');
+        canvas.width = frameWidth;
+        canvas.height = frameHeight;
+
+        const context = canvas.getContext('2d');
+        const frameImage = context.createImageData(frameWidth, frameHeight);
+
+        for (let pixel = 0; pixel < pixelsPerFrame; pixel++) {
+          const globalPixel = frameIndex * pixelsPerFrame + pixel;
+          const packedByte = packedPixels[Math.floor(globalPixel / 2)];
+          const paletteIndex = globalPixel % 2 === 0
+            ? (packedByte >> 4) & 0x0f
+            : packedByte & 0x0f;
+
+          const offset = pixel * 4;
+
+          if (paletteIndex === spriteData.transparentIndex) {
+            frameImage.data[offset + 3] = 0;
+            continue;
+          }
+
+          const color = spriteData.palette[paletteIndex];
+          frameImage.data[offset] = color[0];
+          frameImage.data[offset + 1] = color[1];
+          frameImage.data[offset + 2] = color[2];
+          frameImage.data[offset + 3] = 255;
+        }
+
+        context.putImageData(frameImage, 0, 0);
+        context.imageSmoothingEnabled = false;
+        this.textures.addCanvas('wizard-' + direction, canvas);
+      });
     }
 
     drawWorld() {
@@ -71,42 +138,37 @@
       const startX = WORLD_WIDTH / 2;
       const startY = WORLD_HEIGHT / 2;
 
-      // Por enquanto, o personagem é feito com formas simples do Phaser.
-      // Depois podemos substituir essas formas por uma imagem ou animação.
-      this.wizard = this.add.container(startX, startY);
-
-      const shadow = this.add.ellipse(0, 18, 34, 14, 0x05070c, 0.42);
-      const robe = this.add.ellipse(0, 9, 29, 34, 0x514080);
-      const robeTrim = this.add.ellipse(0, 13, 21, 23, 0x7560b0);
-      const hood = this.add.circle(0, -13, 15, 0x37294f);
-      const face = this.add.circle(0, -11, 9, 0xe5bd94);
-      const staff = this.add.rectangle(19, 5, 4, 43, 0x96704d).setAngle(18);
-      const staffGem = this.add.circle(26, -17, 6, 0x8be4ff).setStrokeStyle(2, 0xd8f8ff);
-      const title = this.add.text(0, 37, 'MAGO', {
-        fontFamily: 'Arial',
-        fontSize: '10px',
-        color: '#e4d8ff',
-        letterSpacing: 2
-      }).setOrigin(0.5, 0);
-
-      this.wizard.add([
-        shadow,
-        staff,
-        robe,
-        robeTrim,
-        hood,
-        face,
-        staffGem,
-        title
-      ]);
-
-      this.wizard.setDepth(10);
+      // O personagem agora usa o pixel art extraído da referência visual.
+      // As quatro imagens representam frente, esquerda, direita e costas.
+      this.wizardFacing = 'front';
+      this.wizard = this.add.image(startX, startY, 'wizard-front')
+        .setOrigin(0.5, 0.82)
+        .setScale(1.8)
+        .setDepth(10);
     }
 
     createControls() {
       // Duas opções de controle: WASD e as setas do teclado.
       this.cursors = this.input.keyboard.createCursorKeys();
       this.wasd = this.input.keyboard.addKeys('W,A,S,D');
+    }
+
+    updateWizardFacing(moveX, moveY) {
+      if (moveX === 0 && moveY === 0) return;
+
+      // Em movimentos diagonais, usamos o eixo dominante para escolher a pose.
+      let nextFacing;
+
+      if (Math.abs(moveX) > Math.abs(moveY)) {
+        nextFacing = moveX < 0 ? 'left' : 'right';
+      } else {
+        nextFacing = moveY < 0 ? 'back' : 'front';
+      }
+
+      if (nextFacing !== this.wizardFacing) {
+        this.wizardFacing = nextFacing;
+        this.wizard.setTexture('wizard-' + nextFacing);
+      }
     }
 
     update(_time, delta) {
@@ -123,6 +185,7 @@
 
       if (direction.length() > 0) {
         direction.normalize();
+        this.updateWizardFacing(moveX, moveY);
 
         // delta é o tempo desde o último quadro, em milissegundos.
         // Multiplicamos pela velocidade para manter o movimento consistente.
@@ -133,7 +196,7 @@
       }
 
       // Impede que o personagem saia dos limites do mundo.
-      const margin = 24;
+      const margin = 55;
       this.wizard.x = Phaser.Math.Clamp(
         this.wizard.x,
         margin,
