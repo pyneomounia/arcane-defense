@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="theme-color" content="#10131f">
+  <title>Arcane Defense — Protótipo</title>
+  <link rel="stylesheet" href="src/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+</head>
+<body>
+  <main id="game-shell">
+    <header class="topbar">
+      <div class="brand"><span class="orb"></span><div><strong>ARCANE DEFENSE</strong><small>PROTÓTIPO 0.1</small></div></div>
+      <div class="stats">
+        <span>ONDA <b id="wave">1</b></span>
+        <span>MANA <b id="mana">100</b></span>
+        <span>CRISTAL <b id="core">100</b>%</span>
+      </div>
+    </header>
+    <section id="game-container" aria-label="Arena do jogo"></section>
+    <footer class="help">
+      <span><i class="key fire"></i> Linha horizontal: Bola de fogo</span>
+      <span><i class="key ice"></i> Zigue-zague: Relâmpago</span>
+      <span><i class="key heal"></i> Círculo: Cura do cristal</span>
+      <span class="mobile-hint">No celular, desenhe com o dedo.</span>
+    </footer>
+    <div id="message" role="status">Desenhe um gesto na arena para conjurar uma magia.</div>
+  </main>
+  <script src="src/main.js"></script>
+</body>
+</html>
