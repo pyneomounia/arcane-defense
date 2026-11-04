@@ -3,7 +3,8 @@
   const VIEW_WIDTH = 960;
   const VIEW_HEIGHT = 540;
   const PLAYER_SPEED = 260; // pixels por segundo
-  const ENEMY_SPEED = 92; // inimigos perseguem mais devagar que o mago
+  const ENEMY_SPEED = 92; // velocidade do slime
+  const WOLF_SPEED = 120; // o lobo é mais rápido e agressivo
   const ENEMY_MAX_COUNT = 10;
   const ENEMY_SPAWN_INTERVAL = 2800;
   const ENEMY_STOP_DISTANCE = 40;
@@ -51,6 +52,9 @@
       ['fire', 'ice', 'water', 'earth'].forEach(element => {
         this.load.image('projectile-' + element, 'assets/projectiles/' + element + '.webp');
       });
+
+      // Novo inimigo: lobo sombrio em pixel art com fundo transparente.
+      this.load.image('enemy-shadow-wolf', 'assets/enemies/wolf.png');
     }
 
     create() {
@@ -390,15 +394,43 @@
         y = view.bottom + margin;
       }
 
-      const shadow = this.add.ellipse(x, y + 4, 31, 11, 0x05070c, 0.48)
-        .setDepth(9);
+      // Garantimos que os dois primeiros inimigos incluam slime e lobo.
+      // Depois, lobos aparecem ocasionalmente entre os slimes.
+      const isWolf = this.enemies.length === 1 || Phaser.Math.Between(1, 100) <= 35;
+      const type = isWolf ? 'wolf' : 'slime';
+      const speed = isWolf ? WOLF_SPEED : ENEMY_SPEED;
+      const shadow = this.add.ellipse(
+        x,
+        y + 4,
+        isWolf ? 43 : 31,
+        isWolf ? 12 : 11,
+        0x05070c,
+        0.48
+      ).setDepth(9);
 
-      const sprite = this.add.image(x, y, 'enemy-shadow-slime')
-        .setOrigin(0.5, 0.82)
-        .setDisplaySize(46, 46)
+      const sprite = this.add.image(
+        x,
+        y,
+        isWolf ? 'enemy-shadow-wolf' : 'enemy-shadow-slime'
+      )
+        .setOrigin(0.5, isWolf ? 0.86 : 0.82)
+        .setDisplaySize(isWolf ? 74 : 46, isWolf ? 43 : 46)
         .setDepth(10.1);
 
-      this.enemies.push({ sprite, shadow });
+      if (isWolf) {
+        // Um pequeno balanço vertical simula as passadas enquanto ele corre.
+        const runningScale = sprite.scaleY;
+        this.tweens.add({
+          targets: sprite,
+          scaleY: runningScale * 0.96,
+          duration: 190,
+          yoyo: true,
+          repeat: -1,
+          ease: 'Sine.easeInOut'
+        });
+      }
+
+      this.enemies.push({ sprite, shadow, type, speed });
       this.updateEnemyCounter();
     }
 
@@ -410,9 +442,8 @@
     updateEnemies(delta) {
       if (!this.wizard || this.enemies.length === 0) return;
 
-      const step = ENEMY_SPEED * (delta / 1000);
-
       this.enemies.forEach(enemy => {
+        const step = enemy.speed * (delta / 1000);
         const dx = this.wizard.x - enemy.sprite.x;
         const dy = this.wizard.y - enemy.sprite.y;
         const distance = Math.hypot(dx, dy);
