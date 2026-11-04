@@ -459,6 +459,10 @@
       // O personagem só fica disponível depois que os quatro sprites forem carregados.
       if (!this.wizard) return;
 
+      // O chão acompanha o deslocamento da câmera para simular o movimento do terreno.
+      this.ground.tilePositionX = this.cameras.main.scrollX;
+      this.ground.tilePositionY = this.cameras.main.scrollY;
+
       // Antes de escolher um elemento, o jogador permanece na tela inicial.
       if (!this.selectedElement) return;
 
