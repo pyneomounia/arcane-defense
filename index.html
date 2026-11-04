@@ -26,16 +26,36 @@
 
     <section id="game-container" aria-label="Arena de treinamento">
       <div id="element-select" class="element-select">
-        <img
-          class="element-background"
-          src="assets/ui/element-selection.webp"
-          alt="Escolha seu elemento inicial: fogo, gelo, água ou terra"
-        >
-        <div class="element-hitboxes" role="group" aria-label="Escolha seu elemento inicial">
-          <button class="element-hitbox hitbox-fire" data-element="fire" type="button" aria-label="Selecionar Fogo"></button>
-          <button class="element-hitbox hitbox-ice" data-element="ice" type="button" aria-label="Selecionar Gelo"></button>
-          <button class="element-hitbox hitbox-water" data-element="water" type="button" aria-label="Selecionar Água"></button>
-          <button class="element-hitbox hitbox-earth" data-element="earth" type="button" aria-label="Selecionar Terra"></button>
+        <div class="selection-panel">
+          <header class="selection-heading">
+            <p class="selection-eyebrow">ARCANE SURVIVAL</p>
+            <h1>Escolha seu elemento</h1>
+            <p>Defina sua afinidade mágica para iniciar a jornada</p>
+          </header>
+
+          <div class="element-options" role="group" aria-label="Escolha seu elemento inicial">
+            <button class="element-option element-fire" data-element="fire" type="button">
+              <span class="element-art"><img src="assets/elemental/fire-pixel-art.png" alt=""></span>
+              <span class="element-label">FOGO</span>
+              <span class="element-description">Chamas e destruição</span>
+            </button>
+            <button class="element-option element-ice" data-element="ice" type="button">
+              <span class="element-art"><img src="assets/elemental/ice-pixel-art.png" alt=""></span>
+              <span class="element-label">GELO</span>
+              <span class="element-description">Frio e precisão</span>
+            </button>
+            <button class="element-option element-water" data-element="water" type="button">
+              <span class="element-art"><img src="assets/elemental/water-pixel-art.png" alt=""></span>
+              <span class="element-label">ÁGUA</span>
+              <span class="element-description">Fluxo e energia</span>
+            </button>
+            <button class="element-option element-earth" data-element="earth" type="button">
+              <span class="element-art"><img src="assets/elemental/earth-pixel-art.png" alt=""></span>
+              <span class="element-label">TERRA</span>
+              <span class="element-description">Força e resistência</span>
+            </button>
+          </div>
+          <p class="selection-hint">Selecione uma afinidade para começar</p>
         </div>
       </div>
     </section>
