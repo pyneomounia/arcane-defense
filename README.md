@@ -2,20 +2,20 @@
 
 Protótipo de um jogo de sobrevivência com tema de mago e progressão elemental.
 
-## Etapa atual: movimentação e personagem
+## Etapa atual: movimentação e animação do personagem
 
 Nesta etapa, o objetivo é aprender o básico do Phaser:
 - Criar uma cena e desenhar um cenário.
-- Carregar um recurso visual do personagem.
+- Carregar spritesheets em WebP.
+- Criar animações com oito quadros por direção.
 - Ler entradas do teclado (WASD e setas).
 - Mover o personagem com velocidade baseada no tempo.
-- Alterar a pose do mago conforme a direção do movimento.
+- Alternar entre animações de frente, costas, esquerda e direita.
+- Voltar à pose parada quando o jogador solta as teclas.
 - Fazer a câmera acompanhar o personagem.
 - Restringir o personagem aos limites do mundo.
 
 ## Como jogar
-
-Abra a página publicada ou execute o projeto por um servidor local.
 
 - **W, A, S, D:** movimentar o mago.
 - **Setas:** alternativa para movimentação.
@@ -24,12 +24,13 @@ Abra a página publicada ou execute o projeto por um servidor local.
 
 - `index.html`: página e elementos da interface.
 - `src/style.css`: estilos da página.
-- `src/main.js`: cena, cenário, personagem, teclado e câmera.
-- `assets/characters/wizard/wizard-sprite.json`: arte pixelada do mago em quatro direções.
+- `src/main.js`: cena, cenário, personagem, teclado, animações e câmera.
+- `assets/characters/wizard/wizard-walk-front.webp`: caminhada de frente.
+- `assets/characters/wizard/wizard-walk-back.webp`: caminhada de costas.
+- `assets/characters/wizard/wizard-walk-left.webp`: caminhada para a esquerda.
+- `assets/characters/wizard/wizard-walk-right.webp`: caminhada para a direita.
 
-## Sobre o personagem
-
-O mago usa um visual provisório em pixel art: capuz roxo, detalhes dourados, manto e gema azul. Nesta versão há uma pose para cada direção; a animação de caminhada será adicionada em uma etapa posterior.
+As animações usam oito quadros por direção, a 10 quadros por segundo. O sprite continua parado no primeiro quadro da direção atual quando o jogador solta o teclado.
 
 ## Próximas etapas
 
