@@ -1,0 +1,21 @@
+* { box-sizing: border-box; }
+:root { color-scheme: dark; font-family: Inter, ui-sans-serif, system-ui, Arial, sans-serif; }
+body { margin: 0; min-height: 100vh; background: radial-gradient(ellipse at top, #20283c, #0b0e17 70%); color: #e9edff; display: grid; place-items: center; }
+#game-shell { width: min(100vw, 1100px); padding: 14px; }
+.topbar { display:flex; align-items:center; justify-content:space-between; gap:12px; padding: 10px 14px; border:1px solid #39445f; border-bottom:0; border-radius:14px 14px 0 0; background:#141a29; }
+.brand { display:flex; align-items:center; gap:10px; letter-spacing:.12em; }
+.brand strong { font-size:13px; }
+.brand small { display:block; color:#8f9bb8; font-size:9px; margin-top:3px; }
+.orb { width:18px; height:18px; border-radius:50%; background: radial-gradient(circle at 35% 30%, #fff, #9c7cff 35%, #5336b9 70%); box-shadow:0 0 18px #9475ff; }
+.stats { display:flex; gap:clamp(8px,3vw,25px); color:#aab5d0; font-size:10px; letter-spacing:.1em; }
+.stats b { color:#fff; font-size:14px; margin-left:4px; }
+#game-container { width:100%; aspect-ratio: 16 / 9; max-height:72vh; min-height:280px; overflow:hidden; border:1px solid #39445f; background:#101827; touch-action:none; }
+#game-container canvas { display:block; width:100% !important; height:100% !important; }
+.help { display:flex; flex-wrap:wrap; gap:10px 18px; padding:12px 14px; border:1px solid #39445f; border-top:0; border-radius:0 0 14px 14px; background:#141a29; color:#aab5d0; font-size:11px; }
+.key { display:inline-block; width:8px; height:8px; border-radius:50%; margin-right:6px; }
+.fire { background:#ff8c45; box-shadow:0 0 8px #ff8c45; }
+.ice { background:#55d8ff; box-shadow:0 0 8px #55d8ff; }
+.heal { background:#76e5a3; box-shadow:0 0 8px #76e5a3; }
+.mobile-hint { color:#d8c6ff; }
+#message { min-height:24px; text-align:center; padding:9px; color:#c5b7ff; font-size:12px; }
+@media (max-width:600px) { #game-shell { padding:0; } .topbar { border-radius:0; padding:10px; } .stats { gap:8px; font-size:9px; } .stats b { font-size:12px; } #game-container { min-height:320px; aspect-ratio: 4 / 5; } .help { border-radius:0; font-size:10px; } }
