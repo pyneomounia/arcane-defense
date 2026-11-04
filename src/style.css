@@ -244,3 +244,25 @@ body.element-menu-open #game-container {
   width: 16.6%;
 }
 
+
+
+/* Mensagens de erro de inicialização ficam visíveis mesmo na tela de seleção. */
+body.startup-error #message {
+  display: block !important;
+  position: fixed;
+  z-index: 1000;
+  left: 50%;
+  top: 50%;
+  width: min(90vw, 620px);
+  min-height: 0;
+  margin: 0;
+  padding: 18px 22px;
+  transform: translate(-50%, -50%);
+  border: 1px solid #a85d63;
+  border-radius: 10px;
+  background: rgba(20, 16, 25, .96);
+  color: #ffd5d8;
+  font-size: 14px;
+  line-height: 1.6;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, .5);
+}
