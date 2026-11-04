@@ -1,10 +1,9 @@
 (() => {
-  // Tamanho da janela do jogo e tamanho total do mundo.
+  // Tamanho da janela do jogo. O mundo não possui largura ou altura fixa.
   const VIEW_WIDTH = 960;
   const VIEW_HEIGHT = 540;
-  const WORLD_WIDTH = 1800;
-  const WORLD_HEIGHT = 1200;
   const PLAYER_SPEED = 260; // pixels por segundo
+  const GROUND_TILE_SIZE = 384;
 
   const message = document.getElementById('message');
 
@@ -43,16 +42,15 @@
       this.drawWorld();
       this.createControls();
 
-      this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
       message.textContent = 'Carregando as animações do mago...';
 
-      // As imagens são montadas a partir dos dados carregados no preload.
+      // A câmera não recebe limites: pode acompanhar o mago em qualquer direção.
       this.loadWizardAnimations()
         .then(() => {
           this.createWizardAnimations();
           this.createWizard();
           this.cameras.main.startFollow(this.wizard, true, 0.08, 0.08);
-          message.textContent = 'Treino 01: caminhe pela arena e explore o cenário.';
+          message.textContent = 'Mundo sem bordas: caminhe para qualquer direção.';
         })
         .catch(error => {
           console.error('Falha ao carregar as animações do mago:', error);
@@ -125,47 +123,103 @@
       });
     }
 
+    createGroundTexture() {
+      // Criamos um pequeno padrão de chão uma única vez.
+      // O TileSprite repete esse padrão para preencher uma área sem fim.
+      const size = GROUND_TILE_SIZE;
+      const texture = this.textures.createCanvas('arcane-ground', size, size);
+      const context = texture.getContext();
+
+      context.imageSmoothingEnabled = false;
+      context.fillStyle = '#192820';
+      context.fillRect(0, 0, size, size);
+
+      // Gerador pseudoaleatório com semente fixa:
+      // o padrão do chão será igual em todas as partidas.
+      let seed = 20261104;
+      const random = () => {
+        seed = (seed * 1664525 + 1013904223) >>> 0;
+        return seed / 4294967296;
+      };
+
+      // Desenha detalhes que atravessam as bordas também do outro lado.
+      // Isso evita cortes visuais quando a textura se repete.
+      const drawWrappedRect = (x, y, width, height, color) => {
+        const positionsX = [x];
+        const positionsY = [y];
+
+        if (x + width > size) positionsX.push(x - size);
+        if (y + height > size) positionsY.push(y - size);
+
+        positionsX.forEach(px => {
+          positionsY.forEach(py => {
+            context.fillStyle = color;
+            context.fillRect(px, py, width, height);
+          });
+        });
+      };
+
+      // Manchas suaves de terra e vegetação.
+      const groundColors = ['#1d2d23', '#203025', '#1b2a22', '#223127'];
+
+      for (let i = 0; i < 75; i++) {
+        const x = Math.floor(random() * size);
+        const y = Math.floor(random() * size);
+        const width = 10 + Math.floor(random() * 34);
+        const height = 5 + Math.floor(random() * 18);
+        const color = groundColors[Math.floor(random() * groundColors.length)];
+        drawWrappedRect(x, y, width, height, color);
+      }
+
+      // Pequenos pixels de musgo e folhas.
+      const mossColors = ['#2b3b29', '#31402d', '#26382b', '#35432f'];
+
+      for (let i = 0; i < 420; i++) {
+        const x = Math.floor(random() * size);
+        const y = Math.floor(random() * size);
+        const width = 1 + Math.floor(random() * 3);
+        const height = 1 + Math.floor(random() * 3);
+        const color = mossColors[Math.floor(random() * mossColors.length)];
+        drawWrappedRect(x, y, width, height, color);
+      }
+
+      // Pequenos fragmentos de pedra, integrados ao chão (não são obstáculos).
+      for (let i = 0; i < 28; i++) {
+        const x = Math.floor(random() * size);
+        const y = Math.floor(random() * size);
+        const stoneWidth = 4 + Math.floor(random() * 8);
+        const stoneHeight = 2 + Math.floor(random() * 5);
+
+        drawWrappedRect(x, y, stoneWidth, stoneHeight, '#29362f');
+        drawWrappedRect(x + 1, y, Math.max(2, stoneWidth - 3), 1, '#3a463c');
+        drawWrappedRect(x, y + stoneHeight, stoneWidth, 1, '#14221c');
+      }
+
+      texture.refresh();
+    }
+
     drawWorld() {
-      const background = this.add.graphics();
+      this.createGroundTexture();
 
-      background.fillStyle(0x111a2a, 1);
-      background.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-
-      // Grade visual para ajudar a perceber o movimento.
-      background.lineStyle(1, 0x293750, 0.48);
-
-      const gridSize = 60;
-
-      for (let x = 0; x <= WORLD_WIDTH; x += gridSize) {
-        background.lineBetween(x, 0, x, WORLD_HEIGHT);
-      }
-
-      for (let y = 0; y <= WORLD_HEIGHT; y += gridSize) {
-        background.lineBetween(0, y, WORLD_WIDTH, y);
-      }
-
-      // Borda da arena.
-      background.lineStyle(5, 0x66789b, 0.8);
-      background.strokeRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-
-      // Alguns círculos no chão servem como referências de distância.
-      background.lineStyle(2, 0x40516d, 0.38);
-      background.strokeCircle(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, 180);
-      background.strokeCircle(WORLD_WIDTH / 2, WORLD_HEIGHT / 2, 360);
-
-      this.add.text(35, 30, 'ARENA DE TREINAMENTO', {
-        fontFamily: 'Arial',
-        fontSize: '15px',
-        color: '#8d9dbb',
-        letterSpacing: 3
-      });
+      // O chão fica preso à tela enquanto sua textura acompanha a câmera.
+      // Como o padrão se repete, nunca aparece uma borda do mapa.
+      this.ground = this.add.tileSprite(
+        0,
+        0,
+        VIEW_WIDTH,
+        VIEW_HEIGHT,
+        'arcane-ground'
+      )
+        .setOrigin(0, 0)
+        .setScrollFactor(0)
+        .setDepth(-100);
     }
 
     createWizard() {
-      const startX = WORLD_WIDTH / 2;
-      const startY = WORLD_HEIGHT / 2;
+      // O mago começa na origem. Não há bordas para alcançar ou atravessar.
+      const startX = 0;
+      const startY = 0;
 
-      // Sombra separada para manter o mago visualmente ligado ao chão.
       this.wizardShadow = this.add.ellipse(
         startX,
         startY + 4,
@@ -175,7 +229,6 @@
         0.42
       ).setDepth(9);
 
-      // Sprite animado com oito quadros por direção.
       this.wizard = this.add.sprite(startX, startY, 'wizard-front', 0)
         .setOrigin(0.5, 0.9)
         .setScale(1.6)
@@ -245,18 +298,10 @@
         this.wizard.setTexture('wizard-' + this.wizardFacing, 0);
       }
 
-      // Impede que o personagem saia dos limites do mundo.
-      const margin = 55;
-      this.wizard.x = Phaser.Math.Clamp(
-        this.wizard.x,
-        margin,
-        WORLD_WIDTH - margin
-      );
-      this.wizard.y = Phaser.Math.Clamp(
-        this.wizard.y,
-        margin,
-        WORLD_HEIGHT - margin
-      );
+      // Atualiza o padrão do chão com a posição da câmera.
+      // O TileSprite permanece na tela, dando a sensação de terreno infinito.
+      this.ground.tilePositionX = this.cameras.main.scrollX;
+      this.ground.tilePositionY = this.cameras.main.scrollY;
 
       this.wizardShadow.setPosition(this.wizard.x, this.wizard.y + 4);
     }
@@ -267,7 +312,7 @@
     parent: 'game-container',
     width: VIEW_WIDTH,
     height: VIEW_HEIGHT,
-    backgroundColor: '#111a2a',
+    backgroundColor: '#192820',
     scale: {
       mode: Phaser.Scale.FIT,
       autoCenter: Phaser.Scale.CENTER_BOTH
