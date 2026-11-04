@@ -2,43 +2,42 @@
 
 Protótipo de um jogo de sobrevivência com tema de mago e progressão elemental.
 
-## Etapa atual: mundo sem bordas
+## Etapa atual: escolha elemental e magias iniciais
 
-Nesta etapa, o objetivo é aprender como criar um mundo que parece infinito:
-- Criar uma textura procedural de chão com uma semente fixa.
-- Repetir essa textura com um TileSprite do Phaser.
-- Prender o chão à câmera e deslocar o padrão conforme o jogador anda.
-- Remover limites fixos da câmera e do mapa.
-- Manter o controle, a velocidade e a animação do mago.
+Ao iniciar, o jogador escolhe uma das quatro afinidades:
+- **Gelo:** projétil cristalino azul-claro.
+- **Fogo:** esfera incandescente com cauda de chama.
+- **Água:** orbe aquático com bolhas.
+- **Terra:** fragmento rochoso angular.
 
-O chão atual é um padrão pixelado de terra, musgo e pequenos fragmentos de pedra. Ele é desenhado uma vez no navegador e repetido sem emendas. Não existe uma imagem de mapa gigante nem uma borda para alcançar.
+Depois da escolha, o mago lança automaticamente a magia selecionada:
+- Primeiro disparo imediato.
+- Próximos disparos a cada 500 ms (0,5 segundo).
+- A magia segue a última direção cardinal para a qual o mago está olhando.
+- Cada elemento tem forma, cores e efeito de impacto próprios.
 
-## Como jogar
+Como ainda não existe sistema de inimigos, os projéteis são demonstrações visuais e atravessam a arena. O objetivo desta etapa é validar a seleção elemental, a cadência e a aparência das magias.
 
+## Mundo e controles
+
+O chão é uma textura procedural repetida, sem bordas fixas.
 - **W, A, S, D:** movimentar o mago.
 - **Setas:** alternativa para movimentação.
-- Caminhe em qualquer direção: a câmera acompanha o personagem e o chão continua.
 
 ## Estrutura
 
-- `index.html`: página e elementos da interface.
-- `src/style.css`: estilos da página.
-- `src/main.js`: cena, chão procedural, personagem, teclado, animações e câmera.
+- `index.html`: página, HUD e seleção de elemento.
+- `src/style.css`: estilos da interface.
+- `src/main.js`: cena, chão procedural, personagem, animações, seleção elemental e projéteis.
 - `assets/characters/wizard/wizard-walk-front.webp`: caminhada de frente.
 - `assets/characters/wizard/wizard-walk-back.webp`: caminhada de costas.
 - `assets/characters/wizard/wizard-walk-left.webp`: caminhada para a esquerda.
 - `assets/characters/wizard/wizard-walk-right.webp`: caminhada para a direita.
 
-## Próxima evolução do mapa
+## Próximas etapas
 
-A repetição do chão resolve a continuidade visual. Em uma próxima etapa, podemos gerar blocos (*chunks*) ao redor do jogador com árvores, pedras, ruínas e outros elementos. Cada bloco poderá usar uma semente baseada em sua coordenada, fazendo com que o mundo seja consistente mesmo quando o jogador voltar a uma região.
-
-## Próximas etapas do jogo
-
-1. Adicionar elementos do cenário e obstáculos.
-2. Adicionar inimigos que perseguem o jogador.
-3. Criar a primeira magia automática.
-4. Adicionar vida, dano e experiência.
-5. Criar escolhas de evolução e as escolas elementais: fogo, água, terra e raio.
-
-As animações do mago usam oito quadros por direção, a 10 quadros por segundo. Quando o jogador solta o teclado, o personagem volta à pose parada da direção atual.
+1. Adicionar inimigos que perseguem o jogador.
+2. Fazer as magias causarem dano e reagirem aos inimigos.
+3. Adicionar vida, experiência e evolução.
+4. Criar melhorias e combinações elementais.
+5. Expandir o cenário com objetos e blocos (*chunks*).
