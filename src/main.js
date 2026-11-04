@@ -9,7 +9,8 @@
 
   // Evita uma tela vazia se a biblioteca Phaser não carregar.
   if (typeof Phaser === 'undefined') {
-    message.textContent = 'Não foi possível carregar o Phaser. Verifique sua conexão e atualize a página.';
+    message.textContent = 'Não foi possível carregar a engine Phaser. Verifique sua conexão com a internet e recarregue a página.';
+    document.body.classList.add('startup-error');
     return;
   }
 
@@ -19,6 +20,7 @@
       this.wizardFacing = 'front';
       this.selectedElement = null;
       this.spellTimer = null;
+      this.wizardReady = false;
     }
 
     preload() {
@@ -49,6 +51,8 @@
       this.drawWorld();
       this.createControls();
 
+      // Os cliques são registrados imediatamente, sem depender das animações.
+      this.bindElementSelection();
       message.textContent = 'Carregando as animações do mago...';
 
       // A câmera não recebe limites: pode acompanhar o mago em qualquer direção.
@@ -57,12 +61,14 @@
           this.createWizardAnimations();
           this.createWizard();
           this.cameras.main.startFollow(this.wizard, true, 0.08, 0.08);
-          this.bindElementSelection();
+          this.wizardReady = true;
           message.textContent = 'Escolha um elemento para começar sua jornada.';
+          if (this.selectedElement) this.startElementCasting();
         })
         .catch(error => {
           console.error('Falha ao carregar as animações do mago:', error);
-          message.textContent = 'Não foi possível carregar o mago. Atualize a página e tente novamente.';
+          message.textContent = 'Falha ao carregar o mago: ' + (error?.message || error) + '. Recarregue a página.';
+          document.body.classList.add('startup-error');
         });
     }
 
@@ -254,7 +260,24 @@
       // Ao iniciar, devolvemos a tela ao layout normal da partida.
       document.body.classList.remove('element-menu-open');
 
-      message.textContent = 'Afinidade escolhida: ' + labels[element] + '. O mago lançará a magia a cada 1 segundo.';
+      if (this.wizardReady) {
+        this.startElementCasting();
+      } else {
+        message.textContent = 'Elemento escolhido: ' + labels[element] + '. Preparando o mago...';
+      }
+    }
+
+    startElementCasting() {
+      if (!this.wizardReady || !this.selectedElement || this.spellTimer) return;
+
+      const labels = {
+        ice: 'GELO',
+        fire: 'FOGO',
+        water: 'ÁGUA',
+        earth: 'TERRA'
+      };
+
+      message.textContent = 'Afinidade escolhida: ' + labels[this.selectedElement] + '. O mago lançará a magia a cada 1 segundo.';
 
       // Primeiro disparo imediato; os próximos acontecem a cada 1 segundo.
       this.castElementSpell();
