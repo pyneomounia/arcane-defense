@@ -246,12 +246,12 @@
       const selectionScreen = document.getElementById('element-select');
       if (selectionScreen) selectionScreen.classList.add('is-hidden');
 
-      message.textContent = 'Afinidade escolhida: ' + labels[element] + '. O mago lançará a magia a cada 0,5 segundo.';
+      message.textContent = 'Afinidade escolhida: ' + labels[element] + '. O mago lançará a magia a cada 1 segundo.';
 
       // Primeiro disparo imediato; os próximos acontecem a cada 500 ms.
       this.castElementSpell();
       this.spellTimer = this.time.addEvent({
-        delay: 500,
+        delay: 1000,
         loop: true,
         callback: this.castElementSpell,
         callbackScope: this
@@ -290,8 +290,8 @@
         y: startY + direction.y * travelDistance,
         alpha: 0.15,
         scale: 0.82,
-        duration: 620,
-        ease: 'Cubic.easeOut',
+        duration: 1200,
+        ease: 'Linear',
         onComplete: () => {
           const impactX = projectile.x;
           const impactY = projectile.y;
