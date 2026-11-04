@@ -231,7 +231,7 @@
 
     bindElementSelection() {
       // Cada botão da tela inicial seleciona a escola mágica da partida.
-      document.querySelectorAll('.element-hitbox').forEach(button => {
+      document.querySelectorAll('.element-option').forEach(button => {
         button.addEventListener('click', () => {
           this.selectElement(button.dataset.element);
         });
