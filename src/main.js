@@ -17,84 +17,111 @@
   class TrainingScene extends Phaser.Scene {
     constructor() {
       super('TrainingScene');
+      this.wizardFacing = 'front';
     }
 
     preload() {
-      // Carrega os dados compactados do personagem.
-      this.load.json('wizardSpriteData', 'assets/characters/wizard/wizard-sprite.json');
+      // Os ciclos de caminhada estão divididos em pequenos arquivos de texto.
+      // Cada direção é uma imagem WebP com oito quadros lado a lado.
+      const chunks = {
+        front: ['front-0', 'front-1', 'front-2'],
+        left: ['left-0', 'left-1'],
+        right: ['right-0', 'right-1'],
+        back: ['back-0', 'back-1']
+      };
+
+      Object.entries(chunks).forEach(([direction, parts]) => {
+        parts.forEach((part, index) => {
+          const key = 'wizard-walk-data-' + direction + '-' + index;
+          const path = 'assets/characters/wizard/walk/' + part + '.txt';
+          this.load.text(key, path);
+        });
+      });
     }
 
     create() {
-      this.createWizardTextures();
       this.drawWorld();
-      this.createWizard();
       this.createControls();
 
-      // Define os limites da câmera e faz ela acompanhar o mago.
       this.cameras.main.setBounds(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-      this.cameras.main.startFollow(this.wizard, true, 0.08, 0.08);
+      message.textContent = 'Carregando as animações do mago...';
 
-      message.textContent = 'Treino 01: caminhe pela arena e explore o cenário.';
+      // As imagens são montadas a partir dos dados carregados no preload.
+      this.loadWizardAnimations()
+        .then(() => {
+          this.createWizardAnimations();
+          this.createWizard();
+          this.cameras.main.startFollow(this.wizard, true, 0.08, 0.08);
+          message.textContent = 'Treino 01: caminhe pela arena e explore o cenário.';
+        })
+        .catch(error => {
+          console.error('Falha ao carregar as animações do mago:', error);
+          message.textContent = 'Não foi possível carregar o mago. Atualize a página e tente novamente.';
+        });
     }
 
-    createWizardTextures() {
-      const spriteData = this.cache.json.get('wizardSpriteData');
+    loadWizardAnimations() {
+      const directions = ['front', 'left', 'right', 'back'];
 
-      if (!spriteData || spriteData.format !== 'arcane-pixel-indexed-4bit-v1') {
-        throw new Error('Os dados do personagem não foram carregados corretamente.');
-      }
+      return Promise.all(directions.map(direction => {
+        const chunkCount = direction === 'front' ? 3 : 2;
+        let base64 = '';
 
-      // O desenho foi salvo como índices de uma paleta de cores.
-      // Dois pixels ocupam um byte, reduzindo bastante o tamanho do arquivo.
-      const binary = window.atob(spriteData.pixels);
-      const packedPixels = new Uint8Array(binary.length);
+        for (let index = 0; index < chunkCount; index++) {
+          const key = 'wizard-walk-data-' + direction + '-' + index;
+          const part = this.cache.text.get(key);
 
-      for (let i = 0; i < binary.length; i++) {
-        packedPixels[i] = binary.charCodeAt(i);
-      }
-
-      const frameWidth = spriteData.frameWidth;
-      const frameHeight = spriteData.frameHeight;
-      const pixelsPerFrame = frameWidth * frameHeight;
-      const expectedBytes = (pixelsPerFrame * spriteData.frameCount) / 2;
-
-      if (packedPixels.length !== expectedBytes) {
-        throw new Error('O arquivo do personagem está incompleto.');
-      }
-
-      // Cada direção vira uma textura própria do Phaser.
-      spriteData.frameOrder.forEach((direction, frameIndex) => {
-        const canvas = document.createElement('canvas');
-        canvas.width = frameWidth;
-        canvas.height = frameHeight;
-
-        const context = canvas.getContext('2d');
-        const frameImage = context.createImageData(frameWidth, frameHeight);
-
-        for (let pixel = 0; pixel < pixelsPerFrame; pixel++) {
-          const globalPixel = frameIndex * pixelsPerFrame + pixel;
-          const packedByte = packedPixels[Math.floor(globalPixel / 2)];
-          const paletteIndex = globalPixel % 2 === 0
-            ? (packedByte >> 4) & 0x0f
-            : packedByte & 0x0f;
-
-          const offset = pixel * 4;
-
-          if (paletteIndex === spriteData.transparentIndex) {
-            frameImage.data[offset + 3] = 0;
-            continue;
+          if (!part) {
+            return Promise.reject(new Error('Parte ausente do sprite: ' + key));
           }
 
-          const color = spriteData.palette[paletteIndex];
-          frameImage.data[offset] = color[0];
-          frameImage.data[offset + 1] = color[1];
-          frameImage.data[offset + 2] = color[2];
-          frameImage.data[offset + 3] = 255;
+          base64 += part;
         }
 
-        context.putImageData(frameImage, 0, 0);
-        context.imageSmoothingEnabled = false;
-        this.textures.addCanvas('wizard-' + direction, canvas);
+        return new Promise((resolve, reject) => {
+          const image = new Image();
+
+          image.onload = () => {
+            if (image.width !== 512 || image.height !== 72) {
+              reject(new Error('Dimensão inesperada na animação: ' + direction));
+              return;
+            }
+
+            // Cada tira possui oito quadros de 64 por 72 pixels.
+            this.textures.addSpriteSheet('wizard-' + direction, image, {
+              frameWidth: 64,
+              frameHeight: 72
+            });
+
+            resolve(direction);
+          };
+
+          image.onerror = () => reject(
+            new Error('Não foi possível decodificar a animação: ' + direction)
+          );
+
+          image.src = 'data:image/webp;base64,' + base64;
+        });
+      }));
+    }
+
+    createWizardAnimations() {
+      const directions = ['front', 'left', 'right', 'back'];
+
+      directions.forEach(direction => {
+        const key = 'wizard-walk-' + direction;
+
+        if (this.anims.exists(key)) return;
+
+        this.anims.create({
+          key,
+          frames: this.anims.generateFrameNumbers('wizard-' + direction, {
+            start: 0,
+            end: 7
+          }),
+          frameRate: 10,
+          repeat: -1
+        });
       });
     }
 
@@ -138,12 +165,20 @@
       const startX = WORLD_WIDTH / 2;
       const startY = WORLD_HEIGHT / 2;
 
-      // O personagem agora usa o pixel art extraído da referência visual.
-      // As quatro imagens representam frente, esquerda, direita e costas.
-      this.wizardFacing = 'front';
-      this.wizard = this.add.image(startX, startY, 'wizard-front')
-        .setOrigin(0.5, 0.82)
-        .setScale(1.8)
+      // Sombra separada para manter o mago visualmente ligado ao chão.
+      this.wizardShadow = this.add.ellipse(
+        startX,
+        startY + 4,
+        48,
+        13,
+        0x05070c,
+        0.42
+      ).setDepth(9);
+
+      // Sprite animado com oito quadros por direção.
+      this.wizard = this.add.sprite(startX, startY, 'wizard-front', 0)
+        .setOrigin(0.5, 0.9)
+        .setScale(1.6)
         .setDepth(10);
     }
 
@@ -156,7 +191,7 @@
     updateWizardFacing(moveX, moveY) {
       if (moveX === 0 && moveY === 0) return;
 
-      // Em movimentos diagonais, usamos o eixo dominante para escolher a pose.
+      // Em movimentos diagonais, usamos o eixo dominante para escolher a direção.
       let nextFacing;
 
       if (Math.abs(moveX) > Math.abs(moveY)) {
@@ -167,11 +202,14 @@
 
       if (nextFacing !== this.wizardFacing) {
         this.wizardFacing = nextFacing;
-        this.wizard.setTexture('wizard-' + nextFacing);
+        this.wizard.setTexture('wizard-' + nextFacing, 0);
       }
     }
 
     update(_time, delta) {
+      // O personagem só fica disponível depois que os quatro sprites forem carregados.
+      if (!this.wizard) return;
+
       let moveX = 0;
       let moveY = 0;
 
@@ -187,12 +225,24 @@
         direction.normalize();
         this.updateWizardFacing(moveX, moveY);
 
-        // delta é o tempo desde o último quadro, em milissegundos.
-        // Multiplicamos pela velocidade para manter o movimento consistente.
-        const distance = PLAYER_SPEED * (delta / 1000);
+        const animationKey = 'wizard-walk-' + this.wizardFacing;
 
+        // Não reinicia a animação a cada quadro; ela continua seu ciclo normalmente.
+        if (
+          !this.wizard.anims.isPlaying ||
+          this.wizard.anims.currentAnim?.key !== animationKey
+        ) {
+          this.wizard.play(animationKey);
+        }
+
+        // delta é o tempo desde o último quadro, em milissegundos.
+        const distance = PLAYER_SPEED * (delta / 1000);
         this.wizard.x += direction.x * distance;
         this.wizard.y += direction.y * distance;
+      } else {
+        // Parado, o mago mostra o primeiro quadro da direção em que está olhando.
+        this.wizard.anims.stop();
+        this.wizard.setTexture('wizard-' + this.wizardFacing, 0);
       }
 
       // Impede que o personagem saia dos limites do mundo.
@@ -207,6 +257,8 @@
         margin,
         WORLD_HEIGHT - margin
       );
+
+      this.wizardShadow.setPosition(this.wizard.x, this.wizard.y + 4);
     }
   }
 
