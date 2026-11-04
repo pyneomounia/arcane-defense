@@ -3,6 +3,10 @@
   const VIEW_WIDTH = 960;
   const VIEW_HEIGHT = 540;
   const PLAYER_SPEED = 260; // pixels por segundo
+  const ENEMY_SPEED = 92; // inimigos perseguem mais devagar que o mago
+  const ENEMY_MAX_COUNT = 10;
+  const ENEMY_SPAWN_INTERVAL = 2800;
+  const ENEMY_STOP_DISTANCE = 40;
   const GROUND_TILE_SIZE = 384;
 
   const message = document.getElementById('message');
@@ -21,6 +25,8 @@
       this.selectedElement = null;
       this.spellTimer = null;
       this.wizardReady = false;
+      this.enemies = [];
+      this.enemySpawnTimer = null;
     }
 
     preload() {
@@ -49,6 +55,7 @@
 
     create() {
       this.drawWorld();
+      this.createEnemyTexture();
       this.createControls();
 
       // Os cliques são registrados imediatamente, sem depender das animações.
@@ -286,6 +293,143 @@
         loop: true,
         callback: this.castElementSpell,
         callbackScope: this
+      });
+
+      this.startEnemySpawning();
+    }
+
+    createEnemyTexture() {
+      // Slime sombrio em pixel art, desenhado em baixa resolução.
+      // Assim o protótipo não depende de um arquivo externo para os inimigos.
+      const size = 32;
+      const texture = this.textures.createCanvas('enemy-shadow-slime', size, size);
+      const context = texture.getContext();
+      context.imageSmoothingEnabled = false;
+      context.clearRect(0, 0, size, size);
+
+      const pixel = (x, y, width, height, color) => {
+        context.fillStyle = color;
+        context.fillRect(x, y, width, height);
+      };
+
+      // Silhueta escura e irregular.
+      pixel(10, 4, 12, 3, '#101a20');
+      pixel(7, 7, 18, 4, '#101a20');
+      pixel(4, 10, 24, 8, '#101a20');
+      pixel(5, 18, 22, 5, '#101a20');
+      pixel(9, 23, 14, 3, '#101a20');
+      pixel(3, 13, 3, 5, '#101a20');
+      pixel(26, 13, 3, 5, '#101a20');
+
+      // Corpo verde-musgo com sombras.
+      pixel(10, 7, 12, 3, '#344d3b');
+      pixel(7, 10, 18, 8, '#3d6246');
+      pixel(8, 18, 16, 4, '#31533d');
+      pixel(11, 22, 10, 2, '#233c31');
+      pixel(8, 10, 5, 3, '#55734a');
+      pixel(7, 14, 3, 3, '#4b7048');
+      pixel(17, 9, 7, 3, '#496a43');
+
+      // Pequenas saliências para dar uma silhueta monstruosa.
+      pixel(7, 6, 4, 3, '#1d342b');
+      pixel(22, 6, 4, 3, '#1d342b');
+      pixel(2, 12, 3, 3, '#243b30');
+      pixel(27, 12, 3, 3, '#243b30');
+
+      // Olhos amarelo-esverdeados.
+      pixel(10, 13, 4, 4, '#17251c');
+      pixel(18, 13, 4, 4, '#17251c');
+      pixel(11, 14, 2, 2, '#f4d879');
+      pixel(19, 14, 2, 2, '#f4d879');
+      pixel(12, 14, 1, 1, '#fff4c0');
+      pixel(20, 14, 1, 1, '#fff4c0');
+
+      // Base mais escura para separar o corpo do chão.
+      pixel(10, 23, 12, 2, '#17271f');
+      texture.refresh();
+    }
+
+    startEnemySpawning() {
+      if (this.enemySpawnTimer) return;
+
+      // Dois inimigos iniciam a perseguição; outros entram aos poucos.
+      this.spawnEnemy();
+      this.spawnEnemy();
+
+      this.enemySpawnTimer = this.time.addEvent({
+        delay: ENEMY_SPAWN_INTERVAL,
+        loop: true,
+        callback: () => {
+          if (this.enemies.length < ENEMY_MAX_COUNT) this.spawnEnemy();
+        }
+      });
+    }
+
+    spawnEnemy() {
+      if (!this.wizard || this.enemies.length >= ENEMY_MAX_COUNT) return;
+
+      const camera = this.cameras.main;
+      const view = camera.worldView;
+      const margin = 72;
+      const side = Phaser.Math.Between(0, 3);
+      let x;
+      let y;
+
+      // O inimigo sempre nasce fora da tela, vindo de uma das quatro bordas.
+      if (side === 0) {
+        x = view.x - margin;
+        y = Phaser.Math.Between(Math.floor(view.y), Math.floor(view.bottom));
+      } else if (side === 1) {
+        x = view.right + margin;
+        y = Phaser.Math.Between(Math.floor(view.y), Math.floor(view.bottom));
+      } else if (side === 2) {
+        x = Phaser.Math.Between(Math.floor(view.x), Math.floor(view.right));
+        y = view.y - margin;
+      } else {
+        x = Phaser.Math.Between(Math.floor(view.x), Math.floor(view.right));
+        y = view.bottom + margin;
+      }
+
+      const shadow = this.add.ellipse(x, y + 4, 31, 11, 0x05070c, 0.48)
+        .setDepth(9);
+
+      const sprite = this.add.image(x, y, 'enemy-shadow-slime')
+        .setOrigin(0.5, 0.82)
+        .setDisplaySize(46, 46)
+        .setDepth(10.1);
+
+      this.enemies.push({ sprite, shadow });
+      this.updateEnemyCounter();
+    }
+
+    updateEnemyCounter() {
+      const counter = document.getElementById('enemy-count');
+      if (counter) counter.textContent = String(this.enemies.length);
+    }
+
+    updateEnemies(delta) {
+      if (!this.wizard || this.enemies.length === 0) return;
+
+      const step = ENEMY_SPEED * (delta / 1000);
+
+      this.enemies.forEach(enemy => {
+        const dx = this.wizard.x - enemy.sprite.x;
+        const dy = this.wizard.y - enemy.sprite.y;
+        const distance = Math.hypot(dx, dy);
+
+        // Os inimigos se aproximam do mago, mas não se sobrepõem a ele.
+        if (distance > ENEMY_STOP_DISTANCE) {
+          const move = Math.min(step, distance - ENEMY_STOP_DISTANCE);
+          enemy.sprite.x += (dx / distance) * move;
+          enemy.sprite.y += (dy / distance) * move;
+          enemy.sprite.setFlipX(dx < 0);
+        }
+
+        enemy.shadow.setPosition(enemy.sprite.x, enemy.sprite.y + 4);
+
+        // Profundidade acompanha a posição vertical para manter a leitura top-down.
+        enemy.shadow.setDepth(9 + enemy.sprite.y * 0.0001);
+        enemy.sprite.setDepth(10 + enemy.sprite.y * 0.0001);
       });
     }
 
@@ -560,6 +704,7 @@
       }
 
       this.wizardShadow.setPosition(this.wizard.x, this.wizard.y + 4);
+      this.updateEnemies(delta);
     }
   }
 
