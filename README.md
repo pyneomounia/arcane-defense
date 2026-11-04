@@ -1,33 +1,36 @@
-# Arcane Defense
+# Arcane Survival
 
-Protótipo inicial de um roguelite de defesa com conjuração de magias por gestos.
+Protótipo de um jogo de sobrevivência com tema de mago e progressão elemental.
 
-## Como executar
-Abra `index.html` em um navegador. Para evitar restrições locais do navegador, também é possível usar a extensão Live Server do VS Code.
+## Etapa atual: movimentação
 
-## Controles
-- Linha horizontal: Bola de fogo
-- Zigue-zague: Relâmpago
-- Círculo: Cura do cristal
-- Mouse no computador ou dedo em telas touch
+Nesta primeira etapa, o objetivo é aprender o básico do Phaser:
+- Criar uma cena e desenhar um cenário.
+- Criar um personagem com formas simples.
+- Ler entradas do teclado (WASD e setas).
+- Mover o personagem com velocidade baseada no tempo.
+- Fazer a câmera acompanhar o personagem.
+- Restringir o personagem aos limites do mundo.
 
-## Publicar no GitHub Pages
-1. Envie todos os arquivos desta pasta para a raiz do repositório.
-2. Em **Settings > Pages**, escolha **Deploy from a branch**.
-3. Selecione `main` e `/ (root)` e salve.
-4. Aguarde o GitHub gerar o endereço público.
+## Como jogar
+
+Abra a página publicada ou execute o projeto por um servidor local.
+
+- **W, A, S, D:** movimentar o mago.
+- **Setas:** alternativa para movimentação.
 
 ## Estrutura
-- `index.html`: página do jogo
-- `src/style.css`: interface e responsividade
-- `src/main.js`: lógica do protótipo
+
+- `index.html`: página e elementos da interface.
+- `src/style.css`: estilos da página.
+- `src/main.js`: cena, cenário, personagem, teclado e câmera.
 
 ## Próximas etapas
-- Melhorar o reconhecimento de gestos (normalização e tolerância).
-- Adicionar sprites e animações.
-- Criar seleção de melhorias roguelike entre ondas.
-- Balancear inimigos, mana e dano.
-- Salvar recordes e progresso local.
-- Adicionar suporte mobile refinado.
 
-Este é um protótipo de mecânicas, não uma versão final.
+1. Adicionar inimigos que perseguem o jogador.
+2. Criar a primeira magia automática.
+3. Adicionar vida, dano e experiência.
+4. Criar escolhas de evolução.
+5. Desenvolver as escolas elementais: fogo, água, terra e raio.
+
+O personagem e o cenário usam formas provisórias do Phaser. A arte definitiva será adicionada depois.
