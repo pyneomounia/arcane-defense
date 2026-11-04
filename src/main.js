@@ -38,6 +38,11 @@
           this.load.text(key, path);
         });
       });
+
+      // As quatro magias usam sprites pixel art separados.
+      ['fire', 'ice', 'water', 'earth'].forEach(element => {
+        this.load.image('projectile-' + element, 'assets/projectiles/' + element + '.webp');
+      });
     }
 
     create() {
@@ -246,9 +251,12 @@
       const selectionScreen = document.getElementById('element-select');
       if (selectionScreen) selectionScreen.classList.add('is-hidden');
 
+      // Ao iniciar, devolvemos a tela ao layout normal da partida.
+      document.body.classList.remove('element-menu-open');
+
       message.textContent = 'Afinidade escolhida: ' + labels[element] + '. O mago lançará a magia a cada 1 segundo.';
 
-      // Primeiro disparo imediato; os próximos acontecem a cada 500 ms.
+      // Primeiro disparo imediato; os próximos acontecem a cada 1 segundo.
       this.castElementSpell();
       this.spellTimer = this.time.addEvent({
         delay: 1000,
@@ -288,8 +296,6 @@
         targets: projectile,
         x: startX + direction.x * travelDistance,
         y: startY + direction.y * travelDistance,
-        alpha: 0.15,
-        scale: 0.82,
         duration: 1200,
         ease: 'Linear',
         onComplete: () => {
@@ -302,90 +308,23 @@
     }
 
     createElementProjectile(element, x, y, direction) {
-      const projectile = this.add.container(x, y).setDepth(12);
-      const graphics = this.add.graphics();
-      const angle = Phaser.Math.RadToDeg(Math.atan2(direction.y, direction.x));
-      projectile.setAngle(angle);
-      projectile.add(graphics);
+      // As imagens já incluem brilho, núcleo e rastro, como na arte da seleção.
+      // Todas apontam para a direita; a rotação acompanha a direção do mago.
+      const sizes = {
+        fire: [150, 68],
+        ice: [150, 83],
+        water: [150, 98],
+        earth: [150, 86]
+      };
 
-      if (element === 'fire') {
-        // Núcleo incandescente com cauda de chama.
-        graphics.fillStyle(0xff4b1f, 0.22);
-        graphics.fillCircle(0, 0, 19);
-        graphics.fillStyle(0xff6a24, 1);
-        graphics.fillTriangle(-25, -7, -8, 0, -25, 7);
-        graphics.fillCircle(0, 0, 11);
-        graphics.fillStyle(0xffd27a, 1);
-        graphics.fillCircle(4, -3, 5);
-        graphics.lineStyle(2, 0xffb34d, 0.9);
-        graphics.strokeCircle(0, 0, 13);
-      } else if (element === 'water') {
-        // Orbe aquático com brilho e pequenas bolhas.
-        graphics.fillStyle(0x269dff, 0.2);
-        graphics.fillCircle(0, 0, 19);
-        graphics.fillStyle(0x168ee8, 1);
-        graphics.fillCircle(0, 0, 12);
-        graphics.fillStyle(0x9cecff, 0.95);
-        graphics.fillCircle(4, -4, 5);
-        graphics.fillStyle(0x55d8ff, 1);
-        graphics.fillCircle(-15, -9, 3);
-        graphics.fillCircle(-20, 5, 2);
-        graphics.lineStyle(2, 0x9cecff, 0.9);
-        graphics.strokeCircle(0, 0, 14);
-      } else if (element === 'earth') {
-        // Fragmento rochoso angular, com facetas em tons terrosos.
-        graphics.fillStyle(0x9a7045, 0.2);
-        graphics.fillCircle(0, 0, 20);
-        graphics.fillStyle(0x8e633e, 1);
-        graphics.fillPoints([
-          new Phaser.Geom.Point(-15, -7),
-          new Phaser.Geom.Point(-4, -15),
-          new Phaser.Geom.Point(12, -10),
-          new Phaser.Geom.Point(16, 4),
-          new Phaser.Geom.Point(4, 14),
-          new Phaser.Geom.Point(-12, 9)
-        ], true);
-        graphics.fillStyle(0xc49a67, 1);
-        graphics.fillTriangle(-4, -15, 12, -10, 3, -2);
-        graphics.fillStyle(0x60452f, 1);
-        graphics.fillTriangle(-12, 9, 4, 14, 3, -2);
-        graphics.lineStyle(2, 0xd4b184, 0.8);
-        graphics.strokePoints([
-          new Phaser.Geom.Point(-15, -7),
-          new Phaser.Geom.Point(-4, -15),
-          new Phaser.Geom.Point(12, -10),
-          new Phaser.Geom.Point(16, 4),
-          new Phaser.Geom.Point(4, 14),
-          new Phaser.Geom.Point(-12, 9)
-        ], true);
-      } else if (element === 'ice') {
-        // Cristal pontudo com núcleo claro e borda azul.
-        graphics.fillStyle(0x4bdcff, 0.2);
-        graphics.fillCircle(0, 0, 21);
-        graphics.fillStyle(0x45cfff, 1);
-        graphics.fillPoints([
-          new Phaser.Geom.Point(-20, 0),
-          new Phaser.Geom.Point(-5, -8),
-          new Phaser.Geom.Point(15, -5),
-          new Phaser.Geom.Point(23, 0),
-          new Phaser.Geom.Point(15, 5),
-          new Phaser.Geom.Point(-5, 8)
-        ], true);
-        graphics.fillStyle(0xc8f7ff, 1);
-        graphics.fillTriangle(-5, -8, 15, -5, 5, 0);
-        graphics.fillTriangle(-5, 8, 15, 5, 5, 0);
-        graphics.lineStyle(2, 0xd6fbff, 0.9);
-        graphics.strokePoints([
-          new Phaser.Geom.Point(-20, 0),
-          new Phaser.Geom.Point(-5, -8),
-          new Phaser.Geom.Point(15, -5),
-          new Phaser.Geom.Point(23, 0),
-          new Phaser.Geom.Point(15, 5),
-          new Phaser.Geom.Point(-5, 8)
-        ], true);
-      }
+      const [width, height] = sizes[element] || [150, 80];
+      const angle = Math.atan2(direction.y, direction.x);
 
-      return projectile;
+      return this.add.image(x, y, 'projectile-' + element)
+        .setOrigin(0.5, 0.5)
+        .setDisplaySize(width, height)
+        .setRotation(angle)
+        .setDepth(12);
     }
 
     createElementImpact(element, x, y) {

@@ -2,21 +2,19 @@
 
 Protótipo de um jogo de sobrevivência com tema de mago e progressão elemental.
 
-## Etapa atual: seleção elemental e magias iniciais
+## Etapa atual: seleção em pixel art e projéteis elementais
 
-A tela inicial apresenta quatro afinidades em cartões com arte pixelada:
-- **Gelo:** projétil cristalino azul-claro.
-- **Fogo:** esfera incandescente com cauda de chama.
-- **Água:** orbe aquático com bolhas.
-- **Terra:** fragmento rochoso angular.
+A tela inicial usa uma composição pixel art completa, com quatro áreas de seleção sobre os botões desenhados: Fogo, Gelo, Água e Terra. Ao escolher, a composição desaparece e a arena começa.
 
-Depois da escolha, o mago lança automaticamente a magia selecionada:
-- Primeiro disparo imediato.
-- Próximos disparos a cada 1 segundo.
-- Cada projétil percorre a arena a uma velocidade menor (360 pixels em 1,2 segundo).
-- A magia segue a última direção cardinal para a qual o mago está olhando.
+Cada magia usa uma imagem pixel art própria, incluindo brilho e rastro:
+- **Fogo:** chama alongada com núcleo incandescente.
+- **Gelo:** cristal azul luminoso.
+- **Água:** orbe azul com corrente e partículas.
+- **Terra:** projétil rochoso com fragmentos.
 
-Como ainda não existe sistema de inimigos, os projéteis são demonstrações visuais e atravessam a arena. O objetivo desta etapa é validar a seleção elemental, a cadência e a aparência das magias.
+O mago dispara imediatamente após a escolha e repete a cada 1 segundo. Os projéteis percorrem 360 pixels em 1,2 segundo, com velocidade constante, girando para acompanhar a direção em que o mago está olhando.
+
+Ainda não existe colisão ou dano: os projéteis são visuais e atravessam a arena.
 
 ## Mundo e controles
 
@@ -26,10 +24,11 @@ O chão é uma textura procedural repetida, sem bordas fixas.
 
 ## Estrutura
 
-- `index.html`: página, HUD e seleção de elemento.
-- `src/style.css`: estilos da interface pixel art.
-- `src/main.js`: cena, chão procedural, personagem, animações, seleção elemental e projéteis.
-- `assets/elemental/`: ilustrações pixel art das quatro afinidades.
+- `index.html`: página, HUD e áreas clicáveis da seleção inicial.
+- `src/style.css`: layout da arena e tela inicial.
+- `src/main.js`: cena, chão procedural, personagem, seleção, animações e disparos.
+- `assets/ui/element-selection.webp`: arte completa da seleção inicial.
+- `assets/projectiles/`: sprites das quatro magias.
 - `assets/characters/wizard/`: sprites do mago.
 
 ## Próximas etapas

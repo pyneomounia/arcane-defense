@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="src/style.css">
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
 </head>
-<body>
+<body class="element-menu-open">
   <main id="game-shell">
     <header class="topbar">
       <div class="brand">
@@ -26,34 +26,16 @@
 
     <section id="game-container" aria-label="Arena de treinamento">
       <div id="element-select" class="element-select">
-        <div class="element-panel">
-          <p class="eyebrow">ARCANE SURVIVAL</p>
-          <h1>Escolha sua afinidade</h1>
-          <p class="element-intro">O primeiro elemento definirá a magia que seu mago dominará nesta jornada.</p>
-
-          <div class="element-grid">
-            <button class="element-option element-ice" data-element="ice" type="button">
-              <img class="element-art" src="assets/elemental/ice-pixel-art.png" alt="Mago lançando um cristal de gelo">
-              <span class="element-name">Gelo</span>
-              <span class="element-desc">Cristais e frio arcano</span>
-            </button>
-            <button class="element-option element-fire" data-element="fire" type="button">
-              <img class="element-art" src="assets/elemental/fire-pixel-art.png" alt="Mago lançando uma bola de fogo">
-              <span class="element-name">Fogo</span>
-              <span class="element-desc">Chamas e combustão</span>
-            </button>
-            <button class="element-option element-water" data-element="water" type="button">
-              <img class="element-art" src="assets/elemental/water-pixel-art.png" alt="Mago lançando uma esfera de água">
-              <span class="element-name">Água</span>
-              <span class="element-desc">Orbes e correntes</span>
-            </button>
-            <button class="element-option element-earth" data-element="earth" type="button">
-              <img class="element-art" src="assets/elemental/earth-pixel-art.png" alt="Mago lançando um fragmento de terra">
-              <span class="element-name">Terra</span>
-              <span class="element-desc">Rochas e fragmentos</span>
-            </button>
-          </div>
-          <p class="element-footnote">A magia será lançada automaticamente a cada 1 segundo.</p>
+        <img
+          class="element-background"
+          src="assets/ui/element-selection.webp"
+          alt="Escolha seu elemento inicial: fogo, gelo, água ou terra"
+        >
+        <div class="element-hitboxes" role="group" aria-label="Escolha seu elemento inicial">
+          <button class="element-hitbox hitbox-fire" data-element="fire" type="button" aria-label="Selecionar Fogo"></button>
+          <button class="element-hitbox hitbox-ice" data-element="ice" type="button" aria-label="Selecionar Gelo"></button>
+          <button class="element-hitbox hitbox-water" data-element="water" type="button" aria-label="Selecionar Água"></button>
+          <button class="element-hitbox hitbox-earth" data-element="earth" type="button" aria-label="Selecionar Terra"></button>
         </div>
       </div>
     </section>
