@@ -17,6 +17,8 @@
     constructor() {
       super('TrainingScene');
       this.wizardFacing = 'front';
+      this.selectedElement = null;
+      this.spellTimer = null;
     }
 
     preload() {
@@ -50,7 +52,8 @@
           this.createWizardAnimations();
           this.createWizard();
           this.cameras.main.startFollow(this.wizard, true, 0.08, 0.08);
-          message.textContent = 'Mundo sem bordas: caminhe para qualquer direção.';
+          this.bindElementSelection();
+          message.textContent = 'Escolha um elemento para começar sua jornada.';
         })
         .catch(error => {
           console.error('Falha ao carregar as animações do mago:', error);
@@ -215,6 +218,199 @@
         .setDepth(-100);
     }
 
+    bindElementSelection() {
+      // Cada botão da tela inicial seleciona a escola mágica da partida.
+      document.querySelectorAll('.element-option').forEach(button => {
+        button.addEventListener('click', () => {
+          this.selectElement(button.dataset.element);
+        });
+      });
+    }
+
+    selectElement(element) {
+      const allowedElements = ['ice', 'fire', 'water', 'earth'];
+      if (!allowedElements.includes(element) || this.selectedElement) return;
+
+      this.selectedElement = element;
+
+      const labels = {
+        ice: 'GELO',
+        fire: 'FOGO',
+        water: 'ÁGUA',
+        earth: 'TERRA'
+      };
+
+      const selectedLabel = document.getElementById('selected-element');
+      if (selectedLabel) selectedLabel.textContent = labels[element];
+
+      const selectionScreen = document.getElementById('element-select');
+      if (selectionScreen) selectionScreen.classList.add('is-hidden');
+
+      message.textContent = 'Afinidade escolhida: ' + labels[element] + '. O mago lançará a magia a cada 0,5 segundo.';
+
+      // Primeiro disparo imediato; os próximos acontecem a cada 500 ms.
+      this.castElementSpell();
+      this.spellTimer = this.time.addEvent({
+        delay: 500,
+        loop: true,
+        callback: this.castElementSpell,
+        callbackScope: this
+      });
+    }
+
+    getFacingVector() {
+      const directions = {
+        front: new Phaser.Math.Vector2(0, 1),
+        back: new Phaser.Math.Vector2(0, -1),
+        left: new Phaser.Math.Vector2(-1, 0),
+        right: new Phaser.Math.Vector2(1, 0)
+      };
+
+      return directions[this.wizardFacing].clone();
+    }
+
+    castElementSpell() {
+      if (!this.wizard || !this.selectedElement) return;
+
+      const direction = this.getFacingVector();
+      const startX = this.wizard.x + direction.x * 30;
+      const startY = this.wizard.y - 18 + direction.y * 30;
+      const projectile = this.createElementProjectile(
+        this.selectedElement,
+        startX,
+        startY,
+        direction
+      );
+
+      // Os projéteis são demonstrações visuais até existir um sistema de inimigos.
+      const travelDistance = 360;
+      this.tweens.add({
+        targets: projectile,
+        x: startX + direction.x * travelDistance,
+        y: startY + direction.y * travelDistance,
+        alpha: 0.15,
+        scale: 0.82,
+        duration: 620,
+        ease: 'Cubic.easeOut',
+        onComplete: () => {
+          const impactX = projectile.x;
+          const impactY = projectile.y;
+          projectile.destroy();
+          this.createElementImpact(this.selectedElement, impactX, impactY);
+        }
+      });
+    }
+
+    createElementProjectile(element, x, y, direction) {
+      const projectile = this.add.container(x, y).setDepth(12);
+      const graphics = this.add.graphics();
+      const angle = Phaser.Math.RadToDeg(Math.atan2(direction.y, direction.x));
+      projectile.setAngle(angle);
+      projectile.add(graphics);
+
+      if (element === 'fire') {
+        // Núcleo incandescente com cauda de chama.
+        graphics.fillStyle(0xff4b1f, 0.22);
+        graphics.fillCircle(0, 0, 19);
+        graphics.fillStyle(0xff6a24, 1);
+        graphics.fillTriangle(-25, -7, -8, 0, -25, 7);
+        graphics.fillCircle(0, 0, 11);
+        graphics.fillStyle(0xffd27a, 1);
+        graphics.fillCircle(4, -3, 5);
+        graphics.lineStyle(2, 0xffb34d, 0.9);
+        graphics.strokeCircle(0, 0, 13);
+      } else if (element === 'water') {
+        // Orbe aquático com brilho e pequenas bolhas.
+        graphics.fillStyle(0x269dff, 0.2);
+        graphics.fillCircle(0, 0, 19);
+        graphics.fillStyle(0x168ee8, 1);
+        graphics.fillCircle(0, 0, 12);
+        graphics.fillStyle(0x9cecff, 0.95);
+        graphics.fillCircle(4, -4, 5);
+        graphics.fillStyle(0x55d8ff, 1);
+        graphics.fillCircle(-15, -9, 3);
+        graphics.fillCircle(-20, 5, 2);
+        graphics.lineStyle(2, 0x9cecff, 0.9);
+        graphics.strokeCircle(0, 0, 14);
+      } else if (element === 'earth') {
+        // Fragmento rochoso angular, com facetas em tons terrosos.
+        graphics.fillStyle(0x9a7045, 0.2);
+        graphics.fillCircle(0, 0, 20);
+        graphics.fillStyle(0x8e633e, 1);
+        graphics.fillPoints([
+          new Phaser.Geom.Point(-15, -7),
+          new Phaser.Geom.Point(-4, -15),
+          new Phaser.Geom.Point(12, -10),
+          new Phaser.Geom.Point(16, 4),
+          new Phaser.Geom.Point(4, 14),
+          new Phaser.Geom.Point(-12, 9)
+        ], true);
+        graphics.fillStyle(0xc49a67, 1);
+        graphics.fillTriangle(-4, -15, 12, -10, 3, -2);
+        graphics.fillStyle(0x60452f, 1);
+        graphics.fillTriangle(-12, 9, 4, 14, 3, -2);
+        graphics.lineStyle(2, 0xd4b184, 0.8);
+        graphics.strokePoints([
+          new Phaser.Geom.Point(-15, -7),
+          new Phaser.Geom.Point(-4, -15),
+          new Phaser.Geom.Point(12, -10),
+          new Phaser.Geom.Point(16, 4),
+          new Phaser.Geom.Point(4, 14),
+          new Phaser.Geom.Point(-12, 9)
+        ], true);
+      } else if (element === 'ice') {
+        // Cristal pontudo com núcleo claro e borda azul.
+        graphics.fillStyle(0x4bdcff, 0.2);
+        graphics.fillCircle(0, 0, 21);
+        graphics.fillStyle(0x45cfff, 1);
+        graphics.fillPoints([
+          new Phaser.Geom.Point(-20, 0),
+          new Phaser.Geom.Point(-5, -8),
+          new Phaser.Geom.Point(15, -5),
+          new Phaser.Geom.Point(23, 0),
+          new Phaser.Geom.Point(15, 5),
+          new Phaser.Geom.Point(-5, 8)
+        ], true);
+        graphics.fillStyle(0xc8f7ff, 1);
+        graphics.fillTriangle(-5, -8, 15, -5, 5, 0);
+        graphics.fillTriangle(-5, 8, 15, 5, 5, 0);
+        graphics.lineStyle(2, 0xd6fbff, 0.9);
+        graphics.strokePoints([
+          new Phaser.Geom.Point(-20, 0),
+          new Phaser.Geom.Point(-5, -8),
+          new Phaser.Geom.Point(15, -5),
+          new Phaser.Geom.Point(23, 0),
+          new Phaser.Geom.Point(15, 5),
+          new Phaser.Geom.Point(-5, 8)
+        ], true);
+      }
+
+      return projectile;
+    }
+
+    createElementImpact(element, x, y) {
+      const colors = {
+        ice: 0x8deeff,
+        fire: 0xff8a3d,
+        water: 0x4bcfff,
+        earth: 0xb58a58
+      };
+
+      const color = colors[element];
+      const ring = this.add.circle(x, y, 8, color, 0.08)
+        .setStrokeStyle(2, color, 0.9)
+        .setDepth(11);
+
+      this.tweens.add({
+        targets: ring,
+        scale: 2.2,
+        alpha: 0,
+        duration: 260,
+        ease: 'Quad.easeOut',
+        onComplete: () => ring.destroy()
+      });
+    }
+
     createWizard() {
       // O mago começa na origem. Não há bordas para alcançar ou atravessar.
       const startX = 0;
@@ -263,6 +459,9 @@
       // O personagem só fica disponível depois que os quatro sprites forem carregados.
       if (!this.wizard) return;
 
+      // Antes de escolher um elemento, o jogador permanece na tela inicial.
+      if (!this.selectedElement) return;
+
       let moveX = 0;
       let moveY = 0;
 
@@ -297,11 +496,6 @@
         this.wizard.anims.stop();
         this.wizard.setTexture('wizard-' + this.wizardFacing, 0);
       }
-
-      // Atualiza o padrão do chão com a posição da câmera.
-      // O TileSprite permanece na tela, dando a sensação de terreno infinito.
-      this.ground.tilePositionX = this.cameras.main.scrollX;
-      this.ground.tilePositionY = this.cameras.main.scrollY;
 
       this.wizardShadow.setPosition(this.wizard.x, this.wizard.y + 4);
     }
