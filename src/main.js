@@ -23,6 +23,7 @@
     constructor() {
       super('TrainingScene');
       this.wizardFacing = 'front';
+      this.playerSpeed = PLAYER_SPEED;
       this.selectedElement = null;
       this.spellTimer = null;
       this.wizardReady = false;
@@ -725,7 +726,7 @@
         }
 
         // delta é o tempo desde o último quadro, em milissegundos.
-        const distance = PLAYER_SPEED * (delta / 1000);
+        const distance = this.playerSpeed * (delta / 1000);
         this.wizard.x += direction.x * distance;
         this.wizard.y += direction.y * distance;
       } else {
