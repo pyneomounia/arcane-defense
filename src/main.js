@@ -3,11 +3,12 @@
   const VIEW_WIDTH = 960;
   const VIEW_HEIGHT = 540;
   const PLAYER_SPEED = 260; // pixels por segundo
-  const ENEMY_SPEED = 92; // velocidade do slime
-  const WOLF_SPEED = 120; // o lobo é mais rápido e agressivo
+  const ENEMY_SPEED = 120; // slime mais rápido: +30% aproximadamente
+  const WOLF_SPEED = 155; // lobo continua sendo o inimigo mais veloz
   const ENEMY_MAX_COUNT = 10;
   const ENEMY_SPAWN_INTERVAL = 2800;
   const ENEMY_STOP_DISTANCE = 40;
+  const ENEMY_COLLISION_DISTANCE = 42;
   const GROUND_TILE_SIZE = 384;
 
   const message = document.getElementById('message');
@@ -441,15 +442,17 @@
     }
 
     updateEnemies(delta) {
-      if (!this.wizard || this.enemies.length === 0) return;
+      if (!this.wizard || this.enemies.length === 0 || this.runOver) return;
 
-      this.enemies.forEach(enemy => {
+      for (const enemy of this.enemies) {
+        if (this.runOver || !enemy.sprite?.active) break;
+
         const step = enemy.speed * (delta / 1000);
         const dx = this.wizard.x - enemy.sprite.x;
         const dy = this.wizard.y - enemy.sprite.y;
         const distance = Math.hypot(dx, dy);
 
-        // Os inimigos se aproximam do mago, mas não se sobrepõem a ele.
+        // Os inimigos avançam até o alcance de contato com o personagem.
         if (distance > ENEMY_STOP_DISTANCE) {
           const move = Math.min(step, distance - ENEMY_STOP_DISTANCE);
           enemy.sprite.x += (dx / distance) * move;
@@ -462,7 +465,25 @@
         // Profundidade acompanha a posição vertical para manter a leitura top-down.
         enemy.shadow.setDepth(9 + enemy.sprite.y * 0.0001);
         enemy.sprite.setDepth(10 + enemy.sprite.y * 0.0001);
-      });
+
+        const contactDistance = Phaser.Math.Distance.Between(
+          this.wizard.x,
+          this.wizard.y,
+          enemy.sprite.x,
+          enemy.sprite.y
+        );
+
+        // Um único contato basta para encerrar a partida.
+        if (contactDistance <= ENEMY_COLLISION_DISTANCE) {
+          if (typeof this.endSurvivalRun === 'function') {
+            this.endSurvivalRun('defeat');
+          } else {
+            this.runOver = true;
+            this.scene.pause();
+          }
+          break;
+        }
+      }
     }
 
     getSpellOrigin(facing) {
