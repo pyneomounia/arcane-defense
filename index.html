@@ -20,10 +20,25 @@
       </div>
       <div class="status">
         <span>ELEMENTO <b id="selected-element">ESCOLHA</b></span>
-        <span>CONTROLE <b>WASD / SETAS</b></span>
+        <span>TEMPO <b id="run-timer">05:00</b></span>
+        <span>NÍVEL <b id="run-level">1</b></span>
+        <span>XP <b id="run-xp">0 / 100</b></span>
+        <span>ABATES <b id="run-kills">0</b></span>
+        <span>AMEAÇA <b id="spawn-pressure">+0%</b></span>
         <span>INIMIGOS <b id="enemy-count">0</b></span>
+        <span>CONTROLE <b>WASD / SETAS</b></span>
       </div>
     </header>
+
+    <div class="xp-hud" aria-label="Progresso de experiência">
+      <div class="xp-hud-labels">
+        <span>EXPERIÊNCIA</span>
+        <span id="xp-label">0 / 100 XP</span>
+      </div>
+      <div class="xp-track" role="progressbar" aria-label="Experiência para o próximo nível" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+        <div id="xp-fill" class="xp-fill"></div>
+      </div>
+    </div>
 
     <section id="game-container" aria-label="Arena de treinamento">
       <div id="element-select" class="element-select">
@@ -74,7 +89,26 @@
     <p id="message" role="status">Carregando o mundo e as animações...</p>
   </main>
 
+  <div id="levelup-overlay" class="game-overlay is-hidden" aria-hidden="true">
+    <section class="overlay-panel levelup-panel" role="dialog" aria-modal="true" aria-labelledby="levelup-title">
+      <p class="overlay-eyebrow">CONHECIMENTO ARCANO</p>
+      <h2 id="levelup-title">NOVO NÍVEL</h2>
+      <p class="overlay-description">Escolha uma melhoria para continuar sua sobrevivência.</p>
+      <div id="upgrade-options" class="upgrade-options"></div>
+    </section>
+  </div>
+
+  <div id="run-ended-overlay" class="game-overlay is-hidden" aria-hidden="true">
+    <section class="overlay-panel run-ended-panel" role="dialog" aria-modal="true" aria-labelledby="run-ended-title">
+      <p class="overlay-eyebrow">FIM DA JORNADA</p>
+      <h2 id="run-ended-title">SOBREVIVÊNCIA CONCLUÍDA</h2>
+      <p id="run-ended-summary" class="overlay-description">Resultado da partida</p>
+      <button id="run-restart" class="restart-button" type="button">JOGAR NOVAMENTE</button>
+    </section>
+  </div>
+
   <script defer src="src/main.js"></script>
   <script defer src="src/combat.js"></script>
+  <script defer src="src/progression.js"></script>
 </body>
 </html>
