@@ -232,11 +232,12 @@
       }
     };
 
-    const originalUpdate=scene.update.bind(scene);
-    scene.update=function(time,delta){
-      originalUpdate(time,delta);
-      if(this.selectedElement)this.updateProjectiles(delta);
-    };
+    // Phaser 3.80 captura scene.update ao terminar a criação da cena.
+    // Por isso, um módulo carregado depois precisa assinar POST_UPDATE em vez
+    // de substituir scene.update: o evento roda logo após o update original.
+    scene.sys.events.on(Phaser.Scenes.Events.POST_UPDATE, function (time, delta) {
+      if (this.selectedElement) this.updateProjectiles(delta);
+    }, scene);
 
     // Se a pessoa já escolheu antes do módulo instalar, reinicia o ciclo com mira.
     if(scene.spellTimer){scene.spellTimer.remove(false);scene.spellTimer=null;}
