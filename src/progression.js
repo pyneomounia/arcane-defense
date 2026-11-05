@@ -474,7 +474,7 @@
       this.scene.resume();
     };
 
-    scene.endSurvivalRun = function () {
+    scene.endSurvivalRun = function (reason = "time") {
       if (this.runOver) return;
       this.runOver = true;
 
@@ -488,9 +488,21 @@
       }
 
       const overlay = document.getElementById("run-ended-overlay");
+      const title = document.getElementById("run-ended-title");
       const summary = document.getElementById("run-ended-summary");
+      const elapsedSeconds = Math.floor((this.runElapsedMs || 0) / 1000);
+      const elapsedLabel = String(Math.floor(elapsedSeconds / 60)).padStart(2, "0") + ":" +
+        String(elapsedSeconds % 60).padStart(2, "0");
+      const wasDefeated = reason === "defeat";
+
+      if (title) {
+        title.textContent = wasDefeated ? "VOCÊ FOI DERROTADO" : "SOBREVIVÊNCIA CONCLUÍDA";
+      }
       if (summary) {
-        summary.textContent = "Nível " + this.level + " · " +
+        const outcome = wasDefeated
+          ? "Um inimigo alcançou você após " + elapsedLabel + "."
+          : "Você sobreviveu aos cinco minutos!";
+        summary.textContent = outcome + " Nível " + this.level + " · " +
           this.totalExperience + " XP · " + this.totalKills + " inimigos derrotados";
       }
       if (overlay) {
