@@ -322,7 +322,7 @@ body.element-menu-open #game-container {
 
 .element-options {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: clamp(10px, 1.7vw, 22px);
 }
 
@@ -394,4 +394,22 @@ body.element-menu-open #game-container {
   .element-select { padding: 14px; overflow-y: auto; }
   .selection-panel { padding: 20px 0; }
   .element-options { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+.element-lightning:hover { border-color: #a984ed; }
+.lightning-art {
+  display: grid !important;
+  place-items: center;
+  aspect-ratio: 1.5 / 1;
+  background: radial-gradient(circle at 50% 50%, rgba(133,77,223,.35), transparent 58%), linear-gradient(135deg,#171426,#10131f);
+}
+.lightning-symbol {
+  color: #d7b7ff;
+  font-family: Georgia,serif;
+  font-size: clamp(42px,5vw,66px);
+  line-height: 1;
+  text-shadow: 0 0 8px #9a5cff, 0 0 22px #7135c9;
+}
+@media (max-width:700px) {
+  .element-options { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
