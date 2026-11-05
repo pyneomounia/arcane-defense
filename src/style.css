@@ -413,3 +413,204 @@ body.element-menu-open #game-container {
 @media (max-width:700px) {
   .element-options { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
+
+
+/* HUD de sobrevivência: cronômetro e progresso de experiência. */
+.xp-hud {
+  padding: 9px 15px 11px;
+  border-left: 1px solid #39445f;
+  border-right: 1px solid #39445f;
+  background: #101725;
+}
+.xp-hud-labels {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 6px;
+  color: #aab5d0;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .14em;
+}
+#xp-label {
+  color: #e7f6ff;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .04em;
+}
+.xp-track {
+  height: 7px;
+  overflow: hidden;
+  border: 1px solid rgba(157, 190, 215, .24);
+  border-radius: 999px;
+  background: #080e18;
+}
+.xp-fill {
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #8bc9ef, #f4fbff);
+  box-shadow: 0 0 12px rgba(164, 224, 255, .55);
+  transition: width .22s ease-out;
+}
+#run-timer {
+  color: #f5e6b6;
+  font-variant-numeric: tabular-nums;
+}
+#spawn-pressure {
+  color: #ffbd84;
+}
+
+/* Modais de escolha de melhoria e encerramento de partida. */
+.game-overlay {
+  position: fixed;
+  z-index: 3000;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: rgba(4, 7, 13, .86);
+  backdrop-filter: blur(5px);
+}
+.game-overlay.is-hidden {
+  display: none;
+}
+.overlay-panel {
+  width: min(900px, 100%);
+  padding: clamp(22px, 4vw, 42px);
+  border: 1px solid rgba(174, 157, 119, .48);
+  border-radius: 14px;
+  background:
+    radial-gradient(ellipse at 50% 0%, rgba(106, 89, 145, .22), transparent 55%),
+    linear-gradient(180deg, #1b2030, #101622);
+  color: #f0eadc;
+  text-align: center;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, .55);
+}
+.overlay-eyebrow {
+  margin: 0 0 8px;
+  color: #c6a76a;
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .28em;
+}
+.overlay-panel h2 {
+  margin: 0;
+  color: #f4e6c7;
+  font-family: Georgia, serif;
+  font-size: clamp(24px, 3.5vw, 38px);
+  letter-spacing: .07em;
+}
+.overlay-description {
+  margin: 10px auto 24px;
+  color: #b5bfd1;
+  font-size: 13px;
+  line-height: 1.55;
+}
+.upgrade-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 13px;
+}
+.upgrade-card {
+  min-height: 190px;
+  padding: 20px 15px 16px;
+  border: 1px solid rgba(163, 177, 203, .34);
+  border-radius: 10px;
+  background: linear-gradient(180deg, rgba(38, 48, 69, .95), rgba(19, 27, 42, .98));
+  color: #edf3ff;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 11px;
+  text-align: center;
+  transition: transform .15s ease, border-color .15s ease, background .15s ease, box-shadow .15s ease;
+}
+.upgrade-card:hover,
+.upgrade-card:focus-visible {
+  transform: translateY(-4px);
+  border-color: #d9c18a;
+  outline: none;
+  background: linear-gradient(180deg, rgba(58, 62, 83, .98), rgba(24, 33, 49, .99));
+  box-shadow: 0 12px 28px rgba(0, 0, 0, .28);
+}
+.upgrade-icon {
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(211, 190, 139, .45);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #f2dca8;
+  font-size: 23px;
+  background: rgba(193, 158, 91, .12);
+}
+.upgrade-card strong {
+  font-family: Georgia, serif;
+  font-size: 16px;
+  letter-spacing: .025em;
+}
+.upgrade-card > span:not(.upgrade-icon) {
+  color: #b5bfd1;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.upgrade-card small {
+  margin-top: auto;
+  color: #d6c28f;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .14em;
+}
+.restart-button {
+  padding: 13px 24px;
+  border: 1px solid #c6a76a;
+  border-radius: 7px;
+  background: linear-gradient(180deg, #675332, #40341f);
+  color: #fff3d4;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .14em;
+  transition: transform .15s ease, filter .15s ease;
+}
+.restart-button:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.15);
+}
+
+@media (max-width: 740px) {
+  .status {
+    gap: 7px 12px;
+    font-size: 9px;
+  }
+  .status b {
+    font-size: 10px;
+  }
+  .upgrade-options {
+    grid-template-columns: 1fr;
+    max-height: 58vh;
+    overflow-y: auto;
+  }
+  .upgrade-card {
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 42px 1fr;
+    grid-template-rows: auto auto auto;
+    text-align: left;
+    justify-items: start;
+    padding: 12px;
+    column-gap: 12px;
+  }
+  .upgrade-icon {
+    grid-row: 1 / span 3;
+  }
+  .upgrade-card strong,
+  .upgrade-card > span:not(.upgrade-icon),
+  .upgrade-card small {
+    grid-column: 2;
+  }
+}
